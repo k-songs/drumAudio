@@ -5,32 +5,41 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
+
   SafeAreaView,
   StatusBar,
 } from "react-native";
 import TempDrumGame from "./components/TempDrumGame";
-import { DIFFICULTY_LEVELS } from "./constants/drumSounds";
+import { DIFFICULTY_LEVELS } from "./constants/drumSounds"; //완료 난이도 
 import { Audio } from "expo-av";
+import * as Font from 'expo-font';
 
 export default function App() {
   const [gameState, setGameState] = useState("menu"); // menu, playing, results
   const [selectedDifficulty, setSelectedDifficulty] = useState("beginner");
   const [gameResults, setGameResults] = useState(null);
+
   useEffect(() => {
     // 🆕 앱 시작 시 오디오 모드 설정
     const setupAudio = async () => {
-      try {
-        await Audio.setAudioModeAsync({
+      try {      await Promise.all([
+        // 오디오 모드 설정
+        Audio.setAudioModeAsync({
           staysActiveInBackground: false,
           shouldDuckAndroid: true,
           playThroughEarpieceAndroid: false,
-        });
-        console.log("🔊 Audio setup completed");
-      } catch (error) {
-        console.error("🚨 Audio setup error:", error);
-      }
-    };
+        }),
+        // 폰트 로드
+        Font.loadAsync({
+          'custom-font': require('./assets/fonts/OpenSans-Bold.ttf'),
+          'custom-font-bold': require('./assets/fonts/OpenSans-Regular.ttf'),
+        })
+      ]);
+      console.log("✅ All setups completed!");
+    } catch (error) {
+      console.error("🚨 Setup failed:", error);
+    }
+  };
 
     if (__DEV__) {
       setupAudio();
@@ -108,7 +117,12 @@ export default function App() {
         return { grade: "양호", emoji: "🥈", color: "#CD7F32" };
       if (percentage >= 60)
         return { grade: "보통", emoji: "🥉", color: "#4CAF50" };
-      return { grade: "연습 필요", emoji: "💪", color: "#FF5722" };
+      return {
+        grade: "연습 필요",
+        emoji: "./assets/lottie/loading.json",
+        color: "#FF5722",
+      };
+      //return { grade: "연습 필요", emoji: "💪", color: "#FF5722" };
     };
 
     const { grade, emoji, color } = getGrade();
@@ -134,8 +148,8 @@ export default function App() {
             {percentage >= 80
               ? "훌륭한 청력을 가지고 계시네요!"
               : percentage >= 60
-              ? "좋은 결과입니다. 더 연습해보세요!"
-              : "연습을 통해 청력을 향상시켜보세요!"}
+                ? "좋은 결과입니다. 더 연습해보세요!"
+                : "연습을 통해 청력을 향상시켜보세요!"}
           </Text>
         </View>
 
